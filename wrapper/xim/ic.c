@@ -143,7 +143,9 @@ __reset_ic(IC* ic)
     int id = ic->icid;
     memset(ic, 0, sizeof(IC));
     ic->icid = id;
-    ic->is_chn_punc = true;
+    ic->is_chn_punc = !((bool) settings_get_int(INIT_PUNC_TYPE));
+    ic->is_full = !((bool) settings_get_int(INIT_WIDTH));
+    ic->is_english = (bool) settings_get_int(INIT_LANGUAGE);
 }
 
 void
@@ -341,3 +343,4 @@ icmgr_ui_refresh(void)
     }
 }
 
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

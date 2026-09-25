@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -40,18 +41,18 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 #include <string>
 #include <cstring>
 
-#if defined(sun)
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #ifdef __cplusplus
 #include <algorithm>
 #else
 #include <sys/ddi.h>
 #endif //__cpluscplus
-#endif //defined(sun)
-
+#endif //ifdef HAVE_UNISTD_H
 
 #ifndef HOST_OS_GNUC_2
     #if defined(DEBUG) && !defined(NDEBUG)
@@ -71,7 +72,7 @@
 inline double log2(double x) { return log(x) / M_LN2; }
 #endif
 
-#if defined(sun) // Solaris/HP-UX 's iconv is const char**
+#if defined(sun) || defined(__NetBSD__) // Solaris/HP-UX/NetBSD 's iconv is const char**
 typedef const char* TIConvSrcPtr;
 #else
 typedef char* TIConvSrcPtr;
@@ -325,8 +326,6 @@ inline long distance(Iterator pos1, Iterator pos2){
 }
 #endif
 
-#if !defined (HAVE_STRNDUP)
-extern "C" char *strndup(const char *s, size_t n);
-#endif //HAVE_STRNDUP
-
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

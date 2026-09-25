@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -117,3 +118,5 @@ bool ReadSentence(wstring& wstr, iterator& first, bool bIgnoreCRLF = false){
 }
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

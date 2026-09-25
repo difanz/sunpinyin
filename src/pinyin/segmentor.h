@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -61,7 +62,7 @@ struct IPySegmentor {
                 return true;
 
             if (m_start == other.m_start)
-                return m_len < m_len;
+                return m_len < other.m_len;
 
             return false;
         }
@@ -94,3 +95,5 @@ struct IPySegmentor {
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

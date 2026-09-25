@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -159,3 +160,5 @@ private:
 };
 
 #endif /* SUNPY_PINYIN_SEG_H */
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

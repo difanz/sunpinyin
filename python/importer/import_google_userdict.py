@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os, sys
 import codecs
@@ -23,7 +23,7 @@ def load_google_user_dict (fname):
 
 def main ():
     if len (sys.argv) != 2:
-        print "Please specify the Google Pinyin exported user dict file!"
+        print("Please specify the Google Pinyin exported user dict file!")
         exit (1)
 
     google_user_dict = load_google_user_dict(sys.argv[1])
@@ -31,3 +31,5 @@ def main ():
 
 if __name__ == "__main__":
     main()
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

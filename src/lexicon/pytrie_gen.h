@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 #ifndef _SUNPINYIN_PYTRIE_GEN_H__
 #define _SUNPINYIN_PYTRIE_GEN_H__
 
@@ -51,9 +52,9 @@ public:
                 unsigned hide = 0,
                 unsigned cslvl = 0){
             anony.m_id = id;
-            anony.m_cost = cost;
+            anony.m_cost = cost<31? cost: 31;
             anony.m_bHide = (hide) ? 1 : 0;
-            anony.m_csLevel = cslvl;
+            anony.m_csLevel = cslvl<3? cslvl: 3;
         }
 
         bool operator<(const TWordId& b) const
@@ -148,9 +149,6 @@ public:
     bool
     threadNonCompletePinyin(void);
 
-    void
-    print(FILE* fp, TNode* root, std::string& pinyin);
-
     bool
     write(const char* fileName, CWordEvaluator* psrt, bool revert_endian);
 
@@ -172,3 +170,5 @@ protected:
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

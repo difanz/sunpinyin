@@ -138,7 +138,7 @@ MBSTOWCS(TWCHAR *pwcs, const char* s, size_t n)
 
     assert(ic != (iconv_t)-1);
 
-    // To eliminate the const char* and char* diffirence in differnt system
+    // To eliminate the const char* and char* difference in different system
     TIConvSrcPtr src = (TIConvSrcPtr)s;
     size_t srclen = std::strlen(s) + 1;
     char* dst = (char*)pwcs;
@@ -194,7 +194,7 @@ MBSTOWCS(TWCHAR *pwcs, const char* s, size_t n)
     const unsigned char *src = (const unsigned char*)s;
     TWCHAR* dst = pwcs;
 
-    while (dst - pwcs < n) {
+    while (dst - pwcs < (ssize_t)n) {
         if (*src < 0xc0 || *src >= 0xfe) {
             if (*src < 0x80) *dst++ = *src;
             if (*src++ == 0) break;
@@ -265,26 +265,4 @@ WCSLEN(const TWCHAR* pwcs)
     return sz;
 }
 
-#if !defined (HAVE_STRNDUP)
-extern "C" char *
-strndup(const char *s, size_t n)
-{
-    size_t nMost;
-    char *p = NULL;
-
-    if (!s)
-        return NULL;
-
-#ifdef __cplusplus
-    nMost = std::min(strlen(s) + 1, n + 1);
-#else
-    nMost = min(strlen(s) + 1, n + 1);
-#endif
-    p = (char*)malloc(nMost);
-    memcpy(p, s, nMost);
-    p[nMost - 1] = '\0';
-
-    return p;
-}
-#endif //HAVE_STRNDUP
-
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

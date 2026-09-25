@@ -53,15 +53,17 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
 
 @implementation SunPinyinApplicationDelegate
 
-//this method is added so that our controllers can access the shared NSMenu.
--(NSMenu*)menu
-{
-    return _menu;
-}
+@synthesize menu = _menu;
+@synthesize candiWin = _candiWin;
+@synthesize inputChinesePuncts = _inputChinesePuncts;
+@synthesize inputFullSymbols = _inputFullSymbols;
+@synthesize switchingPolicy = _switchingPolicy;
+@synthesize commitPolicy = _commitPolicy;
+@synthesize usingUSKbLayout = _usingUSKbLayout;
 
--(CandidateWindow*)candiWin
++(instancetype)fromApp
 {
-    return _candiWin;
+    return (SunPinyinApplicationDelegate *)[NSApp delegate];
 }
 
 -(void)updateUISettings
@@ -95,7 +97,7 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
     //setting font
     NSString *ftname = [pref stringForKey:@"fontName"];
     float ftsize = [pref floatForKey:@"fontSize"];
-    NSFont *font = [NSFont fontWithName:ftname size:ftsize];
+    NSFont *font = [NSFont fontWithName:ftname size:ftsize] ?: [NSFont systemFontOfSize:16];
     NSString* text = [NSString stringWithFormat:@"%@ %.0f",ftname,ftsize];
     [_ftTxtField setFont:font];
     [_ftTxtField setStringValue:text];
@@ -139,8 +141,6 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
             name:NSUserDefaultsDidChangeNotification
             object:nil];
 
-    [GrowlApplicationBridge setGrowlDelegate: self];
-    
     string res_path = [[[NSBundle mainBundle] resourcePath] UTF8String];
     AOptionEventBus::instance().publishEvent(COptionEvent(SYSTEM_DATA_DIR, res_path));
 
@@ -151,19 +151,20 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
         user_data_dir.append ("/SunPinyin");
         AOptionEventBus::instance().publishEvent(COptionEvent(USER_DATA_DIR, user_data_dir));
         
+#ifdef ENABLE_PLUGINS
         /* Test Plugin */
         CIMIPluginManager& plugin_manager = AIMIPluginManager::instance();
         plugin_manager.loadPlugin("cloudpinyin.py");
         NSLog (@"%s", plugin_manager.getLastError().c_str());
+#endif
     }
 }
 
 -(void)preferencesChanged:(NSNotification *)notification
 {
-    if ([[notification name] compare: @"NSUserDefaultsDidChangeNotification"])
-        return;
-    
-    [self loadPreferences];
+    if ([notification.name isEqualToString:@"NSUserDefaultsDidChangeNotification"]) {
+        [self loadPreferences];
+    }
 }
 
 //though we specified the showPrefPanel: in SunPinyinApplicationDelegate as the
@@ -216,11 +217,6 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
                                            forKey:@"inputChinesePuncts"];
 }
 
--(bool)inputChinesePuncts
-{
-    return _inputChinesePuncts;
-}
-
 -(IBAction)toggleFullSymbols:(id)sender
 {
     NSMenuItem *item = [_menu itemWithTag:1];
@@ -229,32 +225,9 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
                                            forKey:@"inputFullSymbols"];
 }
 
--(bool)inputFullSymbols
+-(void)dealloc
 {
-    return _inputFullSymbols;
-}
-
--(SwitchingPolicies)switchingPolicy
-{
-    return _switchingPolicy;
-}
-
--(CommitPolicies)commitPolicy
-{
-    return _commitPolicy;
-}
-
--(bool)usingUSKbLayout
-{
-    return _usingUSKbLayout;
-}
-
--(void)dealloc 
-{
-    delete _data;
-    delete _history;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [super dealloc];
 }
 
 -(NSDictionary *)registrationDictionaryForGrowl
@@ -270,15 +243,20 @@ void updateKeyProfileSettings(NSUserDefaults* pref);
     return (dict);
 }
 
--(void)messageNotify:(NSString*)msg
-{
-    [GrowlApplicationBridge notifyWithTitle: @"SunPinyin"
-                            description: msg
-                            notificationName: @"SunPinyin"
-                            iconData: [NSData dataWithData:[[NSImage imageNamed:@"SunPinyin"] TIFFRepresentation]]
-                            priority: 0
-                            isSticky: NO
-                            clickContext: nil];
+- (void)messageNotify:(NSString *)msg {
+    // 创建一个通知对象
+    NSUserNotification *notification = [[NSUserNotification alloc] init];
+    notification.title = @"SunPinyin";
+    notification.informativeText = msg;
+
+    // 设置通知的图标
+    NSImage *iconImage = [NSImage imageNamed:@"SunPinyin"];
+    if (iconImage) {
+        notification.contentImage = iconImage;
+    }
+
+    // 将通知发送到通知中心
+    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 }
 
 @end //SunPinyinApplicationDelegate
@@ -434,4 +412,4 @@ void updateKeyProfileSettings(NSUserDefaults* pref)
     CSessionConfigStore::instance().m_cancel_on_backspace    = cancel_on_backspace;
 }
 
-
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

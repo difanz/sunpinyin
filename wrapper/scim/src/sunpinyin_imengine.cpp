@@ -125,7 +125,7 @@ extern "C" {
         _letter_property.set_label (_("Full/Half Letter"));
 
         _punct_property.set_icon (SCIM_HALF_PUNCT_ICON);
-        _punct_property.set_tip (_("The input mode of the puncutations. Click to toggle between half and full."));
+        _punct_property.set_tip (_("The input mode of the punctuations. Click to toggle between half and full."));
         _punct_property.set_label (_("Full/Half Punct"));
 
         _scim_config = config;
@@ -598,3 +598,5 @@ SunPyInstance::reload_config(const ConfigPointer &config)
         m_factory->load_user_config();
     }
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

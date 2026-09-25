@@ -3,7 +3,7 @@
 import plistlib, hashlib, os, sys
 
 dir = "../../../data"
-filenames = [ "lm_sc.t3g.be", "lm_sc.t3g.le", "pydict_sc.bin.be", "pydict_sc.bin.le" ]
+filenames = [ "lm_sc.t3g.le", "pydict_sc.bin.le" ]
 files = []
 plist_file = "SunpinyinDataFiles.xml"
 
@@ -33,3 +33,4 @@ plistlib.writePlist(files, plist_file)
 
 print "Done, written to %s." % plist_file
 
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

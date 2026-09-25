@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 #ifndef _IMI_SESSION_H
 #define _IMI_SESSION_H
 
@@ -64,7 +65,7 @@ public:
     /**
      * onConfigChanged will be called whenever an option is changed
      * @param event presents the changed option
-     * @return true if the event is consumed, and not intented to be
+     * @return true if the event is consumed, and not intended to be
      *         sent to another event listener, false otherwise.
      */
     virtual bool onConfigChanged(const COptionEvent&) { return false; }
@@ -102,3 +103,5 @@ private:
 typedef SingletonHolder<COptionEventBus> AOptionEventBus;
 
 #endif // _IMI_SESSION_H
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

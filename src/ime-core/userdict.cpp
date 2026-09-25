@@ -52,10 +52,6 @@ CUserDict::load(const char  *fname)
 
     m_fname = strdup(fname);
     rc = _copyDb(Load);
-    if (rc != SQLITE_OK) {
-        sqlite3_close(m_db);
-        return false;
-    }
 
     return _createTable() && _createIndexes();
 }
@@ -114,6 +110,7 @@ CUserDict::addWord(CSyllables &syllables, const wstring& word)
                    0;
 
     sqlite3_finalize(stmt);
+    _copyDb(Save);
     return ret;
 }
 
@@ -320,3 +317,5 @@ CUserDict::_createIndexes()
 
     return true;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 # 
@@ -161,7 +161,7 @@ class DATrie (object):
                 if progress_cb:
                     progress_cb ()
 
-        for i in xrange (self.chr_encoder (max(trie.root.trans))+1):
+        for i in range (self.chr_encoder (max(trie.root.trans))+1):
             if self.check[i] == -1:
                 self.check[i] = 0
 
@@ -187,20 +187,19 @@ class DATrie (object):
 
         f.close()
 
-    def output_static_c_arrays (self, fname):
-        f = open(fname, 'w+')
+    def output_static_c_arrays (self, f):
         l = len (self.base)
 
-        type = "int" if l > 2**15 else "short"
+        c_type = "int" if l > 2**15 else "short"
 
-        f.write (self.__to_c_array (self.base,  type,  "base"))
-        f.write (self.__to_c_array (self.check, type,  "check"))
+        f.write (self.__to_c_array (self.base,  c_type,  "base"))
+        f.write (self.__to_c_array (self.check, c_type,  "check"))
         f.write (self.__to_c_array (self.value, "int", "value"))
 
         f.close()
 
-    def __to_c_array (self, array, type, name):
-        return "static %s %s[] = {%s};\n\n" % (type, name, ', '.join (str(i) for i in array))
+    def __to_c_array (self, array, c_type, name):
+        return "static %s %s[] = {%s};\n\n" % (c_type, name, ', '.join (str(i) for i in array))
 
     def load (self, fname):
         f = open (fname, 'r')
@@ -273,7 +272,9 @@ def test ():
         v, l = match_longest (datrie, s+'b')
         assert (len(s) == l and valid_syllables[s] == v)
 
-    print 'test executed successfully'
+    print('test executed successfully')
 
 if __name__ == "__main__":
     test ()
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

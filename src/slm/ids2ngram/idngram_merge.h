@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -102,3 +103,4 @@ void ProcessingIdngramMerge(FILE* out, std::vector<FILE* >& file_list){
 
 #endif
 
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

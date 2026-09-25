@@ -51,7 +51,10 @@
 
 #include "imi_options.h"
 #include "imi_gtkwin.h"
+
+#ifdef ENABLE_PLUGINS
 #include "imi_plugin.h"
+#endif
 
 using namespace std;
 
@@ -120,6 +123,7 @@ int main(int argc, char* argv[])
     AQuanpinSchemePolicy::instance().setFuzzyForwarding(false, true);
     AQuanpinSchemePolicy::instance().setFuzzyPinyinPairs(fuzzy_pairs, false);
     AQuanpinSchemePolicy::instance().setFuzzySegmentation(true);
+    AQuanpinSchemePolicy::instance().setInnerFuzzySegmentation(true);
 
     // test plugin
     // CIMIPluginManager& manager = AIMIPluginManager::instance();
@@ -130,6 +134,7 @@ int main(int argc, char* argv[])
 
     CGTKWinHandler *pwh = new CGTKWinHandler(pv);
     pv->attachWinHandler(pwh);
+    pv->getIC()->setMaxBest(3);
 
     pwh->createWindows();
     gtk_main();
@@ -139,3 +144,5 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

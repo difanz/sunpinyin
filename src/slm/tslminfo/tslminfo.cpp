@@ -86,7 +86,8 @@ public:
     bool
     isEnd(iterator& it)
     {
-        return(((it.back().getIdx()) + 1) == getLevelSize(it.back().getLevel()));
+        return (int) ((it.back().getIdx()) + 1)
+            == getLevelSize(it.back().getLevel());
     }
 
     void*
@@ -148,8 +149,8 @@ CIterateThreadSlm::adjustIterator(iterator& it)
     for (int lvl = it.size() - 2; lvl >= 0; --lvl) {
         int sz = getLevelSize(lvl);
         unsigned child = (it[lvl + 1]).getIdx();
-        while ((it[lvl].getIdx() < (sz - 1)) &&
-               ((((TNode*)getNodePtr(it[lvl])) + 1)->ch() <= child)) {
+        while ((int) it[lvl].getIdx() < (sz - 1) &&
+               (((TNode*)getNodePtr(it[lvl])) + 1)->ch() <= child) {
             ++(it[lvl]);
         }
     }
@@ -229,6 +230,10 @@ PrintARPA(CIterateThreadSlm& itslm,
     if (lexicon_filename != NULL) {
         plexicon = new TReverseLexicon();
         FILE* f_lex = fopen(lexicon_filename, "r");
+        if (f_lex == NULL) {
+            fprintf(stderr, "Failed to open lexicon file %s: %s\n", lexicon_filename, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
         while (fgets(word, 10240, f_lex) != NULL) {
             if (strlen(word) > 0) {
                 char* p = word;
@@ -322,3 +327,5 @@ main(int argc, char* argv[])
     }
     return 100;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

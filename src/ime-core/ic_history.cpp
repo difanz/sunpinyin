@@ -42,13 +42,15 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <cassert>
+#include <arpa/inet.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <algorithm>
 #include "ic_history.h"
 
-const unsigned CICHistory::DCWID = (unsigned)-1;
+const uint32_t CICHistory::DCWID = (uint32_t)-1;
 
 CICHistory::~CICHistory()
 {
@@ -68,12 +70,12 @@ CBigramHistory::~CBigramHistory()
 }
 
 bool
-CBigramHistory::memorize(unsigned* its_wid, unsigned* ite_wid)
+CBigramHistory::memorize(uint32_t* its_wid, uint32_t* ite_wid)
 {
     TBigram bigram(DCWID, DCWID);
 
-    // First , we insert an DC word id before the context history
-    // to seperated from previous stream.
+    // First, we insert a DC word id before the context history
+    // to separated from previous stream.
     if (m_memory.size() == contxt_memory_size) {
         TBigram hb;
         hb.first = m_memory.front();
@@ -114,7 +116,7 @@ CBigramHistory::clear()
 }
 
 double
-CBigramHistory::pr(unsigned* its_wid, unsigned* ite_wid)
+CBigramHistory::pr(uint32_t* its_wid, uint32_t* ite_wid)
 {
     TBigram bigram(DCWID, DCWID);
     if (its_wid != ite_wid) {
@@ -127,7 +129,7 @@ CBigramHistory::pr(unsigned* its_wid, unsigned* ite_wid)
 }
 
 double
-CBigramHistory::pr(unsigned* its_wid, unsigned* ite_wid, unsigned wid)
+CBigramHistory::pr(uint32_t* its_wid, uint32_t* ite_wid, uint32_t wid)
 {
     TBigram bigram(DCWID, DCWID);
     if (its_wid != ite_wid)
@@ -136,16 +138,11 @@ CBigramHistory::pr(unsigned* its_wid, unsigned* ite_wid, unsigned wid)
     return pr(bigram);
 }
 
-inline uint16_t
-swap16(uint16_t x)
-{
-    return((x << 8) | ((x >> 8) & 0xff));
-}
-
+// htonl could be a macro, so wrap it in a func.
 inline uint32_t
 swap32(uint32_t x)
 {
-    return((swap16(x) << 16) | (swap16(x >> 16) & 0xffff));
+    return htonl(x);
 }
 
 bool
@@ -182,7 +179,7 @@ CBigramHistory::loadFromFile(const char *fname)
     bool suc = false;
     int fd = open(fname, O_CREAT, 0600);
     if (fd == -1) {
-        perror("fopen bi-gram");
+        suc = loadFromBuffer(NULL, 0);
         return suc;
     }
 
@@ -232,7 +229,7 @@ CBigramHistory::loadFromBuffer(void* buf_ptr, size_t sz)
         std::transform(pw, pw + sz, pw, swap32);
 #endif
         TBigram bigram(DCWID, DCWID);
-        for (unsigned i = 0; i < sz; ++i) {
+        for (size_t i = 0; i < sz; ++i) {
             bigram.first = bigram.second;
             bigram.second = *pw++;
             m_memory.push_back(bigram.second);
@@ -328,7 +325,7 @@ CBigramHistory::decUniFreq(TUnigram& ug)
 }
 
 bool
-CBigramHistory::seenBefore(unsigned wid)
+CBigramHistory::seenBefore(uint32_t wid)
 {
     return(wid != DCWID && m_stopWords.find(wid) == m_stopWords.end() &&
            m_unifreq.find(wid) != m_unifreq.end());
@@ -350,14 +347,14 @@ void
 CBigramHistory::incUniFreq(TUnigram& ug)
 {
     ++m_unifreq[ug];
-    //printf("Remebering uniFreq[%d]-->%d\n", ug, m_unifreq[ug]);
+    //printf("Remembering uniFreq[%d]-->%d\n", ug, m_unifreq[ug]);
 }
 
 void
 CBigramHistory::incBiFreq(TBigram& bg)
 {
     ++m_bifreq[bg];
-    //printf("Remebering biFreq[%d,%d]-->%d\n", bg.first, bg.second, m_bifreq[bg]);
+    //printf("Remembering biFreq[%d,%d]-->%d\n", bg.first, bg.second, m_bifreq[bg]);
 }
 
 // so far, it's very expensive to erase a word from bigram pairs, need to design
@@ -373,7 +370,7 @@ CBigramHistory::incBiFreq(TBigram& bg)
 //   4. remove the unigrams and bigrams of each character, and the entire word
 //
 void
-CBigramHistory::forget(unsigned wid)
+CBigramHistory::forget(uint32_t wid)
 {
     TUnigramPool::iterator uni_it = m_unifreq.find(wid);
     if (uni_it != m_unifreq.end())
@@ -393,7 +390,7 @@ CBigramHistory::forget(unsigned wid)
 }
 
 void
-CBigramHistory::forget(unsigned *its_wid, unsigned *ite_wid)
+CBigramHistory::forget(uint32_t *its_wid, uint32_t *ite_wid)
 {
     for (; its_wid < ite_wid; ++its_wid) {
         TBigram bigram(*its_wid, DCWID);
@@ -408,7 +405,7 @@ CBigramHistory::forget(unsigned *its_wid, unsigned *ite_wid)
 }
 
 void
-CBigramHistory::addStopWords(const std::set<unsigned int>& stopWords)
+CBigramHistory::addStopWords(const std::set<uint32_t>& stopWords)
 {
     m_stopWords.insert(stopWords.begin(), stopWords.end());
 }
@@ -419,5 +416,7 @@ CBigramHistory::initStopWords()
     m_stopWords.clear();
 
     m_stopWords.insert(0);     //unknown world
-    m_stopWords.insert(DCWID); //seperator word id used by history memory interanlly
+    m_stopWords.insert(DCWID); //separator word id used by history memory internally
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -175,3 +176,5 @@ private:
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

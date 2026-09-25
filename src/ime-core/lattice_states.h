@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -52,7 +53,7 @@ typedef TLongExpFloat TSentenceScore;
  * language model size, the state node in language model do not
  * thread the back-off pointer. Now, we just use the Word Id for
  * the node in the language model. Later we should abstract the
- * StateNode from language model implemetation to replace this
+ * StateNode from language model implementation to replace this
  * definition.
  */
 typedef CThreadSlm::TState CSlmState;
@@ -243,3 +244,5 @@ private:
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

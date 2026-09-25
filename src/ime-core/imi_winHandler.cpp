@@ -95,10 +95,12 @@ CIMIWinHandler::updateStatus(int key, int value)
     case STATUS_ID_FULLSYMBOL:
         printf("Full Simbol is "); break;
     default:
-        printf("Unknow Status id %d is ", key);
+        printf("Unknown Status id %d is ", key);
         break;
     }
 
     printf("%d\n", value);
     fflush(stdout);
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

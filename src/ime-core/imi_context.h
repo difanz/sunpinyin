@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -121,7 +122,7 @@ public:
     const TWCHAR       *m_cwstr;
 
 public:
-    /** Give out the constructor for convinience */
+    /** Give out the constructor for convenience */
     CCandidate(unsigned start = 0,
                unsigned end = 0,
                TLexiconState* pLxst = NULL,
@@ -151,7 +152,7 @@ public:
         ASCII                   = 0x0201,      // english string
         PUNC                    = 0x0202,      // punctuation
         SYMBOL                  = 0x0204,      // other symbol
-        DIGITAL                 = 0x0208,      // not implemeted here
+        DIGITAL                 = 0x0208,      // not implemented here
     }; // TYPE
 
     enum BESTWORD_TYPE {
@@ -256,6 +257,7 @@ public:
 
     bool searchFrom(unsigned from = 1);
 
+    size_t getMaxBest() const { return m_maxBest; }
     void setMaxBest(size_t maxBest) {
         m_maxBest = maxBest;
         for (int i = 0; i < MAX_LATTICE_LENGTH; i++) {
@@ -263,6 +265,7 @@ public:
         }
     }
 
+    size_t getMaxTailCandidateNum() const { return m_maxTailCandidateNum; }
     void setMaxTailCandidateNum(size_t maxTailCandidateNum) {
         m_maxTailCandidateNum = maxTailCandidateNum;
     }
@@ -312,11 +315,14 @@ public:
     unsigned cancelSelection(unsigned frIdx, bool doSearch = true);
     void makeSelection(CCandidate &candi, bool doSearch = true);
     void deleteCandidate(CCandidate &candi);
+    void deleteCandidateByWID(unsigned wid);
     void selectSentence(int idx);
 
     void memorize();
     void removeFromHistoryCache(std::vector<unsigned>& wids);
     void printLattice();
+
+    CUserDict* getUserDict() { return m_pUserDict; }
 
 protected:
     void _clearFrom(unsigned from);
@@ -382,3 +388,5 @@ protected:
 }; // CIMIContext
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

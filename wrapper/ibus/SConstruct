@@ -1,5 +1,4 @@
 import os
-import SCons.Tool.textfile
 
 sources = ['src/debug.cpp',
            'src/engine.cpp',
@@ -37,12 +36,13 @@ opts.Add('DATADIR', default='/usr/local/share')
 def PassVariables(envvar, env):
     for (x, y) in envvar:
         if x in os.environ:
-            print 'Warning: you\'ve set %s in the environmental variable!' % x
+            print('Warning: you\'ve set %s in the environmental variable!' % x)
             env[y] = os.environ[x]
 
 env = Environment(ENV=os.environ,
                   CFLAGS=cflags, CXXFLAGS=cflags, 
-                  CPPPATH=['.'], SUBSTFILESUFFIX='.in')
+                  CPPPATH=['.'],
+                  tools=['default', 'textfile'])
 opts.Update(env)
 
 if GetOption('prefix') is not None:
@@ -125,9 +125,6 @@ for locale in locales:
     mo = 'po/%s.mo' % (locale,)
     env.Command(mo, [], 'msgfmt po/%s.po -o %s' % (locale, mo))
 
-# bug of scons...
-# it doesn't include textfile builders by default?
-SCons.Tool.textfile.generate(env)
 sub = {'@LIBEXEC_DIR@': bin_dir,
        '@DATA_DIR@' : data_dir,
        '@ICON_DIR@': icons_dir,
@@ -144,7 +141,7 @@ def DoInstall():
     libexec_target = env.Install(bin_dir, ['ibus-engine-sunpinyin', 
                                            'setup/ibus-setup-sunpinyin'])
     for exec_bin in libexec_target:
-        env.AddPostAction(exec_bin, Chmod(str(exec_bin), 0755))
+        env.AddPostAction(exec_bin, Chmod(str(exec_bin), 0o755))
         
     setup_target = env.Install(data_dir + '/setup',
                                ['setup/setup.xml',
@@ -173,3 +170,5 @@ def DoInstall():
 
 DoInstall()
 env.Alias('install', ['install-libexec', 'install-data', 'install-locale'])
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

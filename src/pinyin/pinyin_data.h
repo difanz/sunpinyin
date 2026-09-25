@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -68,3 +69,5 @@ protected:
 };
 
 #endif /* _PINYIN_DATA_H_ */
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

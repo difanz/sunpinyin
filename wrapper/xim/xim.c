@@ -38,7 +38,6 @@
 #include <stdbool.h>
 #include <langinfo.h>
 #include <locale.h>
-#include <iconv.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -157,7 +156,7 @@ _xim_set_ic_values(XIMHandle* handle, IMChangeICStruct* proto)
     ic->offset_y = __preedit_y;
     IC* cur_ic = icmgr_get_current();
 
-    /* if we change the current ic position, we might wanna
+    /* if we change the current ic position, we might want to
      * move it along the way
      */
     if (cur_ic != NULL && ic->icid == cur_ic->icid) {
@@ -386,3 +385,5 @@ xim_commit_preedit(XIMHandle* handle, const char* result_str)
     IMCommitString(handle, (XPointer) &cs);
     XFree(tp.value);
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

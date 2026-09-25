@@ -66,6 +66,9 @@ static const char* setting_names[] = {
     "smart_punct",
     "skin_name",
     "hide_icbar",
+    "init_punc_type",
+    "init_width",
+    "init_language",
     NULL
 };
 
@@ -267,6 +270,11 @@ __init_default_values()
 
     /* whether hide icbar */
     settings_set_int(HIDE_ICBAR, 0);
+
+    /* init status */
+    settings_set_int(INIT_PUNC_TYPE, 0);
+    settings_set_int(INIT_WIDTH, 1);
+    settings_set_int(INIT_LANGUAGE, 0);
 }
 
 #define REGISTER(k, type, efunc, dfunc)               \
@@ -301,6 +309,9 @@ settings_init()
     REGISTER(SMART_PUNCT, int, __int_enc, __int_dec);
     REGISTER(SKIN_NAME, varchar, __varchar_enc, __varchar_dec);
     REGISTER(HIDE_ICBAR, int, __int_enc, __int_dec);
+    REGISTER(INIT_PUNC_TYPE, int, __int_enc, __int_dec);
+    REGISTER(INIT_WIDTH, int, __int_enc, __int_dec);
+    REGISTER(INIT_LANGUAGE, int, __int_enc, __int_dec);
 
     __init_default_values();
 }
@@ -436,3 +447,5 @@ settings_set(setting_key_t key, void* data)
     }
     memcpy(setting_data[key], data, setting_size[key]);
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

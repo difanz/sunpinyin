@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 #ifndef WRITER_H
 #define WRITER_H
 
@@ -97,3 +98,5 @@ private:
 
 
 #endif // WRITER_H
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

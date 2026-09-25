@@ -83,7 +83,7 @@ CSimplifiedChinesePolicy::loadResources()
     }
 
     char * tmp = strdup(m_user_data_dir.c_str());
-    suc &= createDirectory(tmp);
+    createDirectory(tmp);
     free(tmp);
 
     std::string history_path = m_user_data_dir + "/history";
@@ -265,3 +265,5 @@ CHunpinSchemePolicy::CHunpinSchemePolicy()
     : m_shuangpinType(MS2003)
 {
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

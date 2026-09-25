@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 #ifndef ___SUNPINYIN_H___
 #define ___SUNPINYIN_H___
 
@@ -10,3 +11,5 @@
 #include <ime-core/imi_uiobjects.h>
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os, sys
 import codecs
@@ -28,3 +28,5 @@ def main ():
 
 if __name__ == "__main__":
     main()
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

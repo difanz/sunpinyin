@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -135,3 +136,5 @@ _NodeT_* binary_find_id(_NodeT_ *ph, _NodeT_* pt, TSIMWordId id){
 
 #endif
 
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

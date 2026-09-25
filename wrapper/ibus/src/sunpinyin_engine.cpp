@@ -56,7 +56,8 @@ SunPinyinEngine::SunPinyinEngine(IBusEngine *engine)
       m_punct_prop(SunPinyinProperty::create_punct_prop(engine)),
       m_wh(NULL),
       m_pv(NULL),
-      m_hotkey_profile(NULL)
+      m_hotkey_profile(NULL),
+      m_hard_forward(false)
 {
     CSunpinyinSessionFactory& factory = CSunpinyinSessionFactory::getFactory();
 
@@ -112,7 +113,7 @@ translate_key(guint key_val, guint /*key_code*/, guint modifiers)
 {
     // XXX: may need to move this logic into CKeyEvent
     if (key_val > 0x20 && key_val < 0x7f // isprint(key_val) && !isspace(key_val)
-	&& !(modifiers & IM_CTRL_MASK)) {
+    && !(modifiers & IM_CTRL_MASK)) {
         // we only care about key_val here
         return CKeyEvent(key_val, key_val, modifiers);
     } else {
@@ -127,6 +128,17 @@ SunPinyinEngine::process_key_event (guint key_val,
                                     guint modifiers)
 {
     CKeyEvent key = translate_key(key_val, key_code, modifiers);
+
+    if (getenv("DISABLE_HARD_FORWARD") == NULL) {
+        // Ctrl+<space> is pressed. let's just hard code these.
+        // it looks ridiculous, but on what else do you need to do this hack?
+        if (key.code == 0x20 && key.modifiers == IM_CTRL_MASK) {
+            m_hard_forward = !m_hard_forward;
+            return TRUE;
+        } else if (m_hard_forward) {
+            return FALSE;
+        }
+    }
 
     if (!m_pv->getStatusAttrValue(CIBusWinHandler::STATUS_ID_CN)) {
         // we are in English input mode
@@ -244,6 +256,10 @@ SunPinyinEngine::onConfigChanged(const COptionEvent& event)
         update_cand_window_size();
     } else if (event.name == CONFIG_GENERAL_CHARSET_LEVEL) {
         update_charset_level();
+    } else if (event.name == CONFIG_GENERAL_MAX_BEST) {
+        update_max_best();
+    } else if (event.name == CONFIG_GENERAL_MAX_TAIL_CANDIDATE) {
+        update_max_tail_candidate();
     } else if (event.name == CONFIG_KEYBOARD_MODE_SWITCH) {
         update_mode_key();
     } else if (event.name == CONFIG_KEYBOARD_PUNCT_SWITCH) {
@@ -270,6 +286,8 @@ SunPinyinEngine::update_config()
 {
     update_history_power();
     update_cand_window_size();
+    update_max_best();
+    update_max_tail_candidate();
     update_charset_level();
     update_page_key_minus();
     update_page_key_comma();
@@ -316,8 +334,9 @@ SunPinyinEngine::is_valid() const
 static int
 find_embed_preedit_pos(const IPreeditString& preedit)
 {
+    int mask = IPreeditString::USER_CHOICE & IPreeditString::HANZI_CHAR;
     for (size_t i = 0; i < preedit.charTypeSize(); i++) {
-        if ((preedit.charTypeAt(i) & IPreeditString::USER_CHOICE) == 0) {
+        if ((preedit.charTypeAt(i) & mask) == 0) {
             return i;
         }
     }
@@ -350,7 +369,7 @@ SunPinyinEngine::update_preedit_string(const IPreeditString& preedit)
 
         ibus_engine_update_preedit_text(m_engine,
                                         ibus_text_new_from_ucs4(embed_cstr),
-                                        preedit.caret() - embed_pos, TRUE);
+                                        preedit.caret(), TRUE);
 
     } else {
         ibus_engine_hide_auxiliary_text(m_engine);
@@ -388,11 +407,19 @@ SunPinyinEngine::update_history_power()
 void
 SunPinyinEngine::update_charset_level()
 {
-    unsigned charset = m_config.get(CONFIG_GENERAL_CHARSET_LEVEL, GBK);
+    std::string charset("GBK");
+    charset = m_config.get(CONFIG_GENERAL_CHARSET_LEVEL, charset);
+    //printf("charset is %s.\n", charset.c_str());
     CIMIContext* ic = m_pv->getIC();
     assert(ic);
-    charset &= 3;               // charset can only be 0,1,2 or 3
-    ic->setCharsetLevel(charset);
+    if (charset == "GB2312") {
+        ic->setCharsetLevel(0);
+    } else if (charset == "GBK") {
+        ic->setCharsetLevel(1);
+    }   
+    else {
+        ic->setCharsetLevel(2);
+    }
 }
 
 void
@@ -485,6 +512,27 @@ void
 SunPinyinEngine::update_smart_punc()
 {
     m_pv->setSmartPunct(m_config.get(CONFIG_KEYBOARD_SMARK_PUNCT, true));
+}
+
+void
+SunPinyinEngine::update_max_best()
+{
+    if (m_pv->getIC() == NULL) {
+        return;
+    }
+    int oldval = (int) m_pv->getIC()->getMaxBest();
+    m_pv->getIC()->setMaxBest(m_config.get(CONFIG_GENERAL_MAX_BEST, oldval));
+}
+
+void
+SunPinyinEngine::update_max_tail_candidate()
+{
+    if (m_pv->getIC() == NULL) {
+        return;
+    }
+    int oldval = (int) m_pv->getIC()->getMaxTailCandidateNum();
+    m_pv->getIC()->setMaxTailCandidateNum(
+        m_config.get(CONFIG_GENERAL_MAX_TAIL_CANDIDATE, oldval));
 }
 
 string_pairs parse_pairs(const std::vector<std::string>& strings)
@@ -610,3 +658,5 @@ SunPinyinEngine::update_candi_delete_key()
     /* FIXME: need to get candi_delete_key from user's configuration */
     m_hotkey_profile->setCandiDeleteKey(CKeyEvent(0, 0, IM_ALT_MASK));
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

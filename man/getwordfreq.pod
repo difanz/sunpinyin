@@ -1,0 +1,52 @@
+=head1 NAME
+
+getwordfreq - print word freq information from language model
+
+=head1 SYNOPSIS
+
+B<getwordfreq> [I<option>]... B<-m> I<slm-file> B<-l> I<lexicon>
+
+=head1 DESCRIPTION
+
+B<getwordfreq> prints out the word string and its freq of all words in a language model.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-s> I<corpus-size>
+Specify the training corpus's size. The default I<corpus-size> is 300000000 if not given.
+
+
+=item B<-v>
+
+Be verbose, output other information after word and freq for each line.
+
+
+=item B<-e>
+
+Give format for ervin.
+
+
+=item B<-m> I<slm-file>
+
+Specify language model file.
+
+
+=item B<-l> I<lexicon>
+
+Specify the lexicon file. A default lexicon could be found at F</usr/share/sunpinyin-slm/dict.utf8>.
+
+=back
+
+=head1 AUTHOR
+
+Originally written by Phill.Zhang E<lt>phill.zhang@sun.comE<gt>.
+Currently maintained by Kov.Chai E<lt>tchaikov@gmail.comE<gt>.
+
+=head1 SEE ALSO
+
+B<slmthread>(1).
+
+=for comment
+-*- indent-tabs-mode: nil -*- vim:et:ts=4

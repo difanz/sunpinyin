@@ -78,7 +78,7 @@ isCorrectConverted(const char* utf8, iconv_t ic, iconv_t ric)
     size_t res = iconv(ic, &src, &srclen, &dst, &dstlen);
 
     if (res != size_t(-1) && srclen == 0) {
-        // do revert convertion and compare them
+        // do revert conversion and compare them
         src = (TIConvSrcPtr)gbstr;
         srclen = strlen((char*)src) + 1;
         dst = (char*)utstr;
@@ -94,13 +94,15 @@ isCorrectConverted(const char* utf8, iconv_t ic, iconv_t ric)
 unsigned
 getPureGBEncoding(const char* utf8str)
 {
-    static iconv_t ic_gb = iconv_open("GB2312", "UTF-8");
-    static iconv_t ic_gbk = iconv_open("GBK", "UTF-8");
-    static iconv_t ric_gb = iconv_open("UTF-8", "GB2312");
-    static iconv_t ric_gbk = iconv_open("UTF-8", "GBK");
+    static const iconv_t e = reinterpret_cast<iconv_t>(-1);
+    static const iconv_t ic_gb = iconv_open("GB2312", "UTF-8");
+    static const iconv_t ic_gbk = iconv_open("GBK", "UTF-8");
+    static const iconv_t ric_gb = iconv_open("UTF-8", "GB2312");
+    static const iconv_t ric_gbk = iconv_open("UTF-8", "GBK");
+    // FIXME
+    if (ic_gb == e || ic_gbk == e || ric_gb == e || ric_gbk == e) return 3;
 
     unsigned ret = 0;
-
     if (!isCorrectConverted(utf8str, ic_gb, ric_gb)) {
         ret = 1; // at least it is contains some GBK char
         if (!isCorrectConverted(utf8str, ic_gbk, ric_gbk))
@@ -156,7 +158,7 @@ parseLine(char* buf,
             int cost = 0;
             if (*p == ':') {
                 *p++ = 0;
-                cost = atoi(p);
+                cost = -log2(atof(p)/100);
             }
             pyset.insert(TSyllableInfo(s, cost));
         }
@@ -178,19 +180,9 @@ CPinyinTrieMaker::CPinyinTrieMaker()
         则认为该字段是该词的一个拼音。行长最大4095;
 **********************************************************/
 
-typedef struct {
-    std::string word_buf;
-    std::string pystr;
-    int cost;
-    unsigned gbcategory;
-} TCacheRecord;
-typedef std::vector<TCacheRecord> CWordCache;
-
 bool
 CPinyinTrieMaker::constructFromLexicon(const char* fileName)
 {
-    CWordCache cached_words;
-
     static char buf[4096];
     static char word_buf[2048];
 
@@ -214,48 +206,21 @@ CPinyinTrieMaker::constructFromLexicon(const char* fileName)
         std::set<TSyllableInfo>::const_iterator ite = pyset.end();
         for (; its != ite; ++its) {
             const char *pystr = its->m_py.c_str();
-            int cost = its->m_cost;
+            if (m_Lexicon.size() < id + 1) m_Lexicon.resize(id + 1);
+            m_Lexicon[id] = std::string(word_buf);
 
-            if (cost >= 0) {
-                if (m_Lexicon.size() < id + 1) m_Lexicon.resize(id + 1);
-                m_Lexicon[id] = std::string(word_buf);
-
-                CPinyinTrieMaker::TWordId wid(id, cost, false, gbcategory);
-                suc = insertFullPinyinPair(pystr, wid) && suc;
-            } else { // cache the rarely seen phonetic
-                TCacheRecord record;
-                record.word_buf = word_buf;
-                record.pystr = pystr;
-                record.cost = cost;
-                record.gbcategory = gbcategory;
-
-                cached_words.push_back(record);
-            }
+            CPinyinTrieMaker::TWordId wid(id, its->m_cost, false, gbcategory);
+            suc = insertFullPinyinPair(pystr, wid) && suc;
         }
     }
     fclose(fp);
 
-    // insert the cached words with rarely seen phonetic
-    // FIXME: may use the pinlv information in unicode data later
-    ++id;
-    for (CWordCache::iterator it = cached_words.begin();
-         it != cached_words.end();
-         ++it, ++id) {
-        if (m_Lexicon.size() < id + 1) m_Lexicon.resize(id + 1);
-        m_Lexicon[id] = it->word_buf;
-        int cost = 30 / (-it->cost);
-        CPinyinTrieMaker::TWordId wid(id, cost, true, it->gbcategory);
-        suc = insertFullPinyinPair(it->pystr.c_str(), wid) && suc;
-    }
-
-    printf("\n    %zd primitive nodes", TNode::m_AllNodes.size());  fflush(
-        stdout);
+    printf("\n    %zd primitive nodes", TNode::m_AllNodes.size());  fflush(stdout);
 
     threadNonCompletePinyin();
     printf("\n    %zd total nodes", TNode::m_AllNodes.size());  fflush(stdout);
 
     std::string pyPrefix = "";
-    //print(stderr, &m_RootNode, pyPrefix);
     printf("\n");  fflush(stdout);
 
     return suc;
@@ -326,30 +291,6 @@ parseFullPinyin(const char *pinyin, std::vector<TSyllable> &ret)
     free(buf);
 }
 
-void
-CPinyinTrieMaker::print(FILE* fp, TNode* root, std::string& pinyin)
-{
-    if (root && root->m_WordIdSet.size() > 0) {
-        fprintf(fp, "%s", pinyin.c_str());
-        CWordSet::const_iterator itId = root->m_WordIdSet.begin();
-        CWordSet::const_iterator itIdLast = root->m_WordIdSet.end();
-        for (; itId != itIdLast; ++itId) {
-            fprintf(fp, " %s", m_Lexicon[itId->anony.m_id].c_str());
-        }
-        fprintf(fp, "\n");
-    }
-    if (root) {
-        CTrans::const_iterator itTrans = root->m_Trans.begin();
-        CTrans::const_iterator itTransLast = root->m_Trans.end();
-        for (; itTrans != itTransLast; ++itTrans) {
-            const char *str = CPinyinData::decodeSyllable(itTrans->first);
-            pinyin = pinyin + str + '\'';
-            print(fp, itTrans->second, pinyin);
-            pinyin.resize(pinyin.size() - strlen(str) - 1);
-        }
-    }
-}
-
 CPinyinTrieMaker::TNode*
 CPinyinTrieMaker::insertTransfer(TNode* pnode, unsigned s)
 {
@@ -402,9 +343,21 @@ CPinyinTrieMaker::addCombinedTransfers(TNode *pnode,
 
         CNodeSet::const_iterator it = nodes.begin();
         CNodeSet::const_iterator ite = nodes.end();
-        for (; it != ite; ++it)
-            p->m_WordIdSet.insert(
-                (*it)->m_WordIdSet.begin(), (*it)->m_WordIdSet.end());
+        for (; it != ite; ++it) {
+            CWordSet::const_iterator wit  = (*it)->m_WordIdSet.begin();
+            CWordSet::const_iterator wite = (*it)->m_WordIdSet.end();
+
+            for (; wit != wite; ++wit) {
+                CWordSet::iterator tmp = p->m_WordIdSet.find (*wit);
+
+                if (tmp == p->m_WordIdSet.end()) {
+                    p->m_WordIdSet.insert (*wit);
+                } else if (tmp->anony.m_cost > wit->anony.m_cost) {
+                    p->m_WordIdSet.erase (tmp);
+                    p->m_WordIdSet.insert (*wit);
+                }
+            }
+        }
     }
 
     pnode->m_Trans[s] = p;
@@ -561,7 +514,7 @@ CPinyinTrieMaker::write(FILE *fp, CWordEvaluator* psrt, bool revert_endian)
         itId = pnode->m_WordIdSet.begin();
         itIdLast = pnode->m_WordIdSet.end();
         for (; itId != itIdLast; ++itId)
-            vec.push_back(TWordInfo(*itId, psrt->getCost(*itId),
+            vec.push_back(TWordInfo(*itId, psrt->getCost(*itId) + itId->anony.m_cost,
                                     psrt->isSeen(*itId)));
         std::make_heap(vec.begin(), vec.end());
         std::sort_heap(vec.begin(), vec.end());
@@ -588,3 +541,5 @@ CPinyinTrieMaker::write(FILE *fp, CWordEvaluator* psrt, bool revert_endian)
     }
     return suc;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

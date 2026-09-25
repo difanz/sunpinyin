@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -183,6 +184,8 @@ public:
                                    int userIdx = -1) = 0;
     virtual void insertCandidate(wstring wstr, int type, int rank,
                                  int userIdx = -1) = 0;
+    virtual void insertCandidateNoDedup(wstring wstr, int type, int rank,
+                                        int userIdx = -1) = 0;
 
     virtual CCandiStrings &     getCandiStrings() = 0;
     virtual CCandiTypeVec &     getCandiTypeVec() = 0;
@@ -220,6 +223,8 @@ public:
     virtual void pushBackCandidate(wstring wstr, int type, int userIdx = -1);
     virtual void insertCandidate(wstring wstr, int type, int rank,
                                  int userIdx = -1);
+    virtual void insertCandidateNoDedup(wstring wstr, int type, int rank,
+                                        int userIdx = -1);
 
     virtual CCandiStrings &     getCandiStrings();
     virtual CCandiTypeVec &     getCandiTypeVec();
@@ -241,3 +246,5 @@ protected:
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

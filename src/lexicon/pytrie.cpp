@@ -141,6 +141,8 @@ CPinyinTrie::print(const TNode* pRoot, std::string& prefix, FILE *fp) const
                 fprintf(fp, "[x]");
             else
                 fprintf(fp, "[o]");
+
+            fprintf(fp, "(%d)", pwids[i].m_cost);
         }
         fprintf(fp, "\n");
     }
@@ -156,3 +158,5 @@ CPinyinTrie::print(const TNode* pRoot, std::string& prefix, FILE *fp) const
         prefix.resize(prefix.size() - strlen(str) - 1);
     }
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

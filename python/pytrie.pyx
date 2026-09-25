@@ -92,7 +92,7 @@ cdef class PinyinTrieNode:
     def get_words (self):
         words = []
         cdef CPinyinTrie_TWord *p= <CPinyinTrie_TWord*> self.pnode.getWordIdPtr ()
-        for i in xrange (self.pnode.m_nWordId):
+        for i in range (self.pnode.m_nWordId):
             words.append (WordInfo(p[i].m_id, p[i].m_bSeen, p[i].m_cost, p[i].m_len, p[i].m_csLevel))
         return words 
 
@@ -144,3 +144,5 @@ cdef class PinyinTrie:
     def is_valid (self, node, allowNonComplete=True, csLevel=0):
         cdef CPinyinTrie_TNode *pnode = (<PinyinTrieNode>node).pnode
         return self.thisptr.isValid (pnode, allowNonComplete, csLevel)
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

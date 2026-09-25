@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -171,7 +172,7 @@ public:
 
     void setHotkeyProfile(CHotkeyProfile *prof) { m_pHotkeyProfile = prof; }
     void setCandiWindowSize(unsigned size) {
-        m_candiWindowSize = size < 10 ? size : 10;
+        m_candiWindowSize = size;
     }
 
     CHotkeyProfile* getHotkeyProfile() { return m_pHotkeyProfile; }
@@ -201,9 +202,13 @@ public:
     virtual void handlerUpdateCandidates(IPreeditString* ppd,
                                          ICandidateList* pcl);
     virtual void handlerCommit(const wstring& wstr);
+
+#ifdef ENABLE_PLUGINS
 private:
     void _pluginProvideCandidates(wstring preedit, ICandidateList* pcl);
     void _pluginTranslateCandidate(ICandidateList* pcl);
+#endif // ENABLE_PLUGINS
+
 protected:
     CIMIContext        *m_pIC;
     CIMIWinHandler     *m_pWinHandler;
@@ -220,3 +225,5 @@ protected:
 };
 
 #endif
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

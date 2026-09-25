@@ -1,3 +1,6 @@
+# -*- mode:python; indent-tabs-mode:nil -*-
+# vim:et:ts=4
+
 import os
 
 sources = ['ic.c',
@@ -44,11 +47,13 @@ AddOption('--rpath', dest='rpath', type='string', nargs=1, action='store',
 opts = Variables('configure.conf')
 opts.Add('PREFIX', default='/usr/local')
 
+
 def PassVariables(envvar, env):
     for (x, y) in envvar:
         if x in os.environ:
-            print 'Warning: you\'ve set %s in the environmental variable!' % x
+            print('Warning: you\'ve set %s in the environmental variable!' % x)
             env[y] = os.environ[x]
+
 
 env = Environment(ENV=os.environ,
                   CFLAGS=cflags, CXXFLAGS=cflags,
@@ -63,6 +68,8 @@ opts.Save('configure.conf', env)
 
 envvar = [('CC', 'CC'),
           ('CXX', 'CXX'),
+          ('AR', 'AR'),
+          ('RANLIB', 'RANLIB'),
           ('CFLAGS', 'CFLAGS'),
           ('CXXFLAGS', 'CXXFLAGS'),
           ('LDFLAGS', 'LINKFLAGS')]
@@ -72,7 +79,7 @@ bin_dir = env['PREFIX'] + '/bin'
 data_dir = '%s/share/xsunpinyin/' % env['PREFIX']
 icon_dir = data_dir + 'icons/'
 
-extra_cflags =  ' -DSUNPINYIN_XIM_ICON_DIR=\\"%s\\"' % icon_dir
+extra_cflags = ' -DSUNPINYIN_XIM_ICON_DIR=\\"%s\\"' % icon_dir
 extra_cflags += ' -DSUNPINYIN_XIM_SETTING_DIR=\\"%s\\"' % data_dir
 
 env.Append(CFLAGS=extra_cflags)
@@ -145,7 +152,6 @@ def DoInstall():
     env.Alias('install-bin', bin_target)
     env.Alias('install-data', [icon_target, data_target])
 
+
 DoInstall()
 env.Alias('install', ['install-bin', 'install-data'])
-
-

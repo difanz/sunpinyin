@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * Copyright (c) 2009 Kov Chai <tchaikov@gmail.com>
  *
@@ -89,3 +90,5 @@ private:
 };
 
 #endif //SLM_FILE_H
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -77,6 +77,9 @@ typedef enum {
     SMART_PUNCT,
     SKIN_NAME,
     HIDE_ICBAR,
+    INIT_PUNC_TYPE,
+    INIT_WIDTH,
+    INIT_LANGUAGE
 } setting_key_t;
 
 #define MAX_KEY 0xFF
@@ -100,3 +103,5 @@ double settings_get_double(setting_key_t key);
 __END_DECLS
 
 #endif /* _SETTINGS_H_ */
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -56,7 +56,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "../sim_slmbuilder.h"
+#include "sim_slmbuilder.h"
 
 static struct option long_options[] =
 {
@@ -89,7 +89,7 @@ Options:\n\
   -w --wordcount N            # Lexicon size, number of different word\n\
   -b --brk       id[,id...]   # set the ids which should be treat as breaker\n\
   -e --exclude   id[,id...]   # set the ids which should not be put into LM\n\
-  -c --cut       c1[,c2...]   # k-gram whose freq <= c[k] are droped\n\
+  -c --cut       c1[,c2...]   # k-gram whose freq <= c[k] are dropped\n\
   -d --discount  method,param # the k-th -d parm specify the discount method \n\
       for k-gram. Possible values for method/param:\n\
           GT,R,dis  : GT discount for r <= R, r is the freq of a ngram.\n\
@@ -239,7 +239,13 @@ main(int argc, char* argv[])
     CSlmBuilder::FREQ_TYPE freq;
 
     printf("Reading and Processing raw idngram..."); fflush(stdout);
-    FILE *fp = fopen(inputfilename, "rb");
+
+    FILE* fp = fopen(inputfilename, "rb");
+    if (fp == NULL) {
+        fprintf(stderr, "Failed to open raw idngram file %s: %s\n", inputfilename, strerror(errno));
+        return EXIT_FAILURE;
+    }
+
     int nItems = 0;
     while (fread(ngram, sizeof(TSIMWordId), N, fp) == (size_t) N
            && fread(&freq, sizeof(freq), 1, fp) == 1) {
@@ -247,7 +253,7 @@ main(int argc, char* argv[])
         ++nItems;
     }
     fclose(fp);
-    delete ngram;
+    delete[] ngram;
     printf("%d ngrams.\n", nItems); fflush(stdout);
 
     builder.Build();
@@ -260,3 +266,5 @@ main(int argc, char* argv[])
 
     return 0;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

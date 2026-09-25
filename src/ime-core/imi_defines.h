@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
@@ -50,3 +51,5 @@
 
 
 #endif /* SUNPY_IMI_CONFIG_H */
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

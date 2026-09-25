@@ -131,6 +131,7 @@ CIMIClassicView::updateWindows(unsigned mask)
             for (size_t j = 0; j < tail.size(); j++) {
                 tail_text += tail[j].m_cwstr;
             }
+            m_tails.push_back(std::make_pair(tail_text, tail));
         }
     }
 
@@ -193,15 +194,18 @@ CIMIClassicView::onKeyEvent(const CKeyEvent& key)
                && !m_pIC->isEmpty()) {
         changeMasks |= KEYEVENT_USED;
         if (m_candiPageFirst > 0) {
-            m_candiPageFirst -= m_candiWindowSize;
-            if (m_candiPageFirst < 0) m_candiPageFirst = 0;
+            if (m_candiPageFirst > m_candiWindowSize) {
+                m_candiPageFirst -= m_candiWindowSize;
+            } else {
+                m_candiPageFirst = 0;
+            }
             changeMasks |= CANDIDATE_MASK;
         }
     } else if (((modifiers == 0 && keycode == IM_VK_PAGE_DOWN)
                 || (m_pHotkeyProfile && m_pHotkeyProfile->isPageDownKey(key)))
                && !m_pIC->isEmpty()) {
         changeMasks |= KEYEVENT_USED;
-        if (m_candiPageFirst + m_candiWindowSize < _candidateListSize()) {
+        if (m_candiPageFirst + m_candiWindowSize < candidateListSize()) {
             m_candiPageFirst += m_candiWindowSize;
             changeMasks |= CANDIDATE_MASK;
         }
@@ -210,7 +214,7 @@ CIMIClassicView::onKeyEvent(const CKeyEvent& key)
               && !m_pIC->isEmpty()) {
         changeMasks |= KEYEVENT_USED;
         unsigned sel = (keyvalue == '0' ? 9 : keyvalue - '1');
-        _deleteCandidate(sel, changeMasks);
+        deleteCandidate(sel, changeMasks);
         goto PROCESSED;
     } else if ((modifiers &
                 (IM_CTRL_MASK | IM_ALT_MASK | IM_SUPER_MASK |
@@ -222,7 +226,7 @@ CIMIClassicView::onKeyEvent(const CKeyEvent& key)
             if (!m_pIC->isEmpty()) {
                 changeMasks |= KEYEVENT_USED;
                 unsigned sel = (keyvalue == '0' ? 9 : keyvalue - '1');
-                _makeSelection(sel, changeMasks);
+                makeSelection(sel, changeMasks);
             } else if (m_smartPunct) {
                 m_pIC->omitNextPunct();
             }
@@ -251,7 +255,7 @@ CIMIClassicView::onKeyEvent(const CKeyEvent& key)
         } else if (keycode == IM_VK_SPACE) {
             if (!m_pIC->isEmpty()) {
                 changeMasks |= KEYEVENT_USED;
-                _makeSelection(0, changeMasks);
+                makeSelection(0, changeMasks);
             } else {
                 wstring wstr = (m_pIC->fullPuncOp())(keyvalue);
                 if (wstr.size()) {
@@ -316,7 +320,7 @@ CIMIClassicView::onCandidatePageRequest(int pgno, bool relative)
 
     if (!m_pIC->isEmpty()) {
         changeMasks |= KEYEVENT_USED;
-        size_t sz = _candidateListSize();
+        size_t sz = candidateListSize();
         lastpgidx = (sz - 1) / m_candiWindowSize * m_candiWindowSize;
         if (relative == true) {
             ncandi = m_candiPageFirst + pgno * m_candiWindowSize;
@@ -353,7 +357,7 @@ CIMIClassicView::onCandidateSelectRequest(int index)
     unsigned changeMasks = 0;
 
     if (!m_pIC->isEmpty())
-        _makeSelection(index, changeMasks);
+        makeSelection(index, changeMasks);
 
     updateWindows(changeMasks);
     return 0;
@@ -431,7 +435,7 @@ CIMIClassicView::getCandidateList(ICandidateList& cl, int start, int size)
     cl.setSize(size);
 
     cl.setFirst(start);
-    cl.setTotal(_candidateListSize());
+    cl.setTotal(candidateListSize());
 
     // sentences
     for (size_t i = 0; i < m_sentences.size(); i++) {
@@ -652,7 +656,7 @@ CIMIClassicView::_moveEnd(unsigned& mask)
 }
 
 void
-CIMIClassicView::_makeSelection(int candiIdx, unsigned& mask)
+CIMIClassicView::makeSelection(int candiIdx, unsigned& mask)
 {
     if (m_candiList.size() == 0 || m_sentences.size() == 0) {
         // user might delete all the left over pinyin characters, this will
@@ -672,9 +676,8 @@ CIMIClassicView::_makeSelection(int candiIdx, unsigned& mask)
     int type = m_uiCandidateList.getCandiTypeVec()[candiIdx];
     bool selected = false;
 
+    mask |= PREEDIT_MASK | CANDIDATE_MASK;
     if (type == ICandidateList::BEST_TAIL) {
-        // commit the best sentence
-        mask |= PREEDIT_MASK | CANDIDATE_MASK;
         // get the rank of that sentence and select it
         m_pIC->selectSentence(m_sentences[idx].first);
         _doCommit();
@@ -698,7 +701,6 @@ CIMIClassicView::_makeSelection(int candiIdx, unsigned& mask)
     }
 
     if (selected) {
-        mask |= PREEDIT_MASK | CANDIDATE_MASK;
         if (m_cursorFrIdx < m_candiFrIdx)
             m_cursorFrIdx = m_candiFrIdx;
 
@@ -721,7 +723,7 @@ CIMIClassicView::_makeSelection(int candiIdx, unsigned& mask)
 }
 
 void
-CIMIClassicView::_deleteCandidate(int candiIdx, unsigned& mask)
+CIMIClassicView::deleteCandidate(int candiIdx, unsigned& mask)
 {
     // candiIdx += m_candiPageFirst;
     int idx = m_uiCandidateList.getUserIndex(candiIdx);
@@ -732,6 +734,12 @@ CIMIClassicView::_deleteCandidate(int candiIdx, unsigned& mask)
         std::vector<unsigned> wids;
         m_pIC->getSelectedSentence(wids, m_candiFrIdx);
         m_pIC->removeFromHistoryCache(wids);
+
+        /* if the sentence wid length is 1, also delete this word */
+        if (wids.size() == 1) {
+            unsigned wid = wids[0];
+            m_pIC->deleteCandidateByWID(wid);
+        }
     } else if (type == ICandidateList::BEST_WORD
                || type == ICandidateList::NORMAL_WORD) {
         // remove an ordinary candidate
@@ -742,3 +750,5 @@ CIMIClassicView::_deleteCandidate(int candiIdx, unsigned& mask)
     _getCandidates();
     mask |= PREEDIT_MASK | CANDIDATE_MASK;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -303,7 +303,7 @@ CValueCompressor::operator()(std::map<float, float>& eff2val,
         v2idx[eff2val[itm->first]] = itm->second;
     }
 
-/* // Can not be maped back, because some value could not be in the eff2val maps
+/* // Can not be mapped back, because some value could not be in the eff2val maps
     std::vector<float>::iterator itt = table.begin();
     std::vector<float>::iterator itte = table.end();
     for (; itt != itte; ++itt)
@@ -311,7 +311,4 @@ CValueCompressor::operator()(std::map<float, float>& eff2val,
  */
 }
 
-
-
-
-
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

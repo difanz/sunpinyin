@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 # 
@@ -45,7 +45,7 @@ from trie import match_longest, get_ambiguious_length
 from utils import read_ch_sentences
 
 def usage():
-    print '''
+    print('''
 Usage:
 mmseg.py -d dict_file [-f (text|bin)] [-i] [-s STOK_ID] [-a AMBI_ID] corpus_file
 
@@ -65,7 +65,7 @@ mmseg.py -d dict_file [-f (text|bin)] [-i] [-s STOK_ID] [-a AMBI_ID] corpus_file
     The sequence ABC will not be segmented, in binary mode, the AMBI-ID 
     is written out; in text mode, <ambi>ABC</ambi> will be output. Default 
     is 9.
-'''
+''')
 
 options={'show-id':       False, 
          'format' :       'bin', 
@@ -75,8 +75,8 @@ options={'show-id':       False,
 def parse_options(args):
     try:
         opts, args = getopt.getopt(args, "hid:f:s:a:", ["help", "show-id", "dict=", "format=", "stok-id=", "ambi-id="])
-    except getopt.GetoptError, err:
-        print str(err) 
+    except getopt.GetoptError as err:
+        print(str(err))
         sys.exit(1)
 
     for opt,val in opts:
@@ -110,10 +110,11 @@ def output_word(wid, word):
             word = word+'('+str(wid)+')'
         sys.stdout.write('%s ' % word.encode('UTF-8'))
     else:
-        sys.stdout.write(struct.pack('l', wid))
+        sys.stdout.write(struct.pack('I', wid))
 
 def process_file(file, dict):
     for line in read_ch_sentences(file):
+        print(line.encode('UTF-8'), file=sys.stderr)
         length = len(line)
         i = 0
         while (i < length):
@@ -141,3 +142,5 @@ if __name__ == "__main__":
 
     process_file (file, dict)
     file.close()
+
+# -*- indent-tabs-mode: nil -*- vim:et:ts=4

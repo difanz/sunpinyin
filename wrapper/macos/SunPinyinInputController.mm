@@ -54,7 +54,7 @@ Implement one of the three ways to receive input from the client.
 Here are the three approaches:
                  
   1. Support keybinding.
-    In this approach the system takes each keydown and trys to map the keydown 
+    In this approach the system takes each keydown and tries to map the keydown 
     to an action method that the input method has implemented.  If an action 
     is found the system calls didCommandBySelector:client:.  If no action 
     method is found inputText:client: is called.  An input method choosing 
@@ -84,7 +84,7 @@ Here are the three approaches:
 
 -(BOOL)handleEvent:(NSEvent*)event client:(id)sender
 {
-    // Return YES to indicate the the key input was received and dealt with.  
+    // Return YES to indicate the the key input was received and dealt with.
     // Key processing will not continue in that case.  In other words the 
     // system will not deliver a key down event to the application.
     // Returning NO means the original key down will be passed on to the client.
@@ -93,8 +93,9 @@ Here are the three approaches:
     _currentClient = sender;
     bool handled = NO;
     NSUInteger modifiers = [event modifierFlags];
-    SwitchingPolicies switchPolicy = [[NSApp delegate] switchingPolicy];
-    CommitPolicies commitPolicy = [[NSApp delegate] commitPolicy];
+    SunPinyinApplicationDelegate *pinyinDelegate = [SunPinyinApplicationDelegate fromApp];
+    SwitchingPolicies switchPolicy = pinyinDelegate.switchingPolicy;
+    CommitPolicies commitPolicy = pinyinDelegate.commitPolicy;
 
     if (SWITCH_BY_CAPS == switchPolicy) {
         _englishMode = (modifiers & NSAlphaShiftKeyMask);
@@ -114,8 +115,10 @@ Here are the three approaches:
                 _englishMode = !_englishMode;
                 _session->switchInputMode(_englishMode, commitPolicy);
 
-                if (_englishMode)
-                    [[NSApp delegate] messageNotify:NSLocalizedString(@"Switched to English mode", nil)];
+                if (_englishMode) {
+                    SunPinyinApplicationDelegate *delegate = [SunPinyinApplicationDelegate fromApp];
+                    [delegate messageNotify:NSLocalizedString(@"Switched to English mode", nil)];
+                }
             }
             break;
         case NSKeyDown:
@@ -131,7 +134,6 @@ Here are the three approaches:
                 }
                 break;
             }
-            
             // translate osx keyevents to ime keyevents
             CKeyEvent key_event = osx_keyevent_to_ime_keyevent (keyCode, keyChar, modifiers);
             handled = _session->onKeyEvent (key_event);
@@ -154,7 +156,7 @@ Here are the three approaches:
 
 -(void)activateServer:(id)sender
 {
-    if ([[NSApp delegate] usingUSKbLayout])
+    if ([SunPinyinApplicationDelegate fromApp].usingUSKbLayout)
         [sender overrideKeyboardWithKeyboardNamed:@"com.apple.keylayout.US"];
 }
 
@@ -168,10 +170,10 @@ Here are the three approaches:
 
 -(void)deactivateServer:(id)sender
 {
-    [[[NSApp delegate] candiWin] hideCandidates];
+    [[SunPinyinApplicationDelegate fromApp].candiWin hideCandidates];
 
     NSString *string = [_preeditString stringByReplacingOccurrencesOfString:@" " withString:@""];
-    if (string && [string length])
+    if (string.length)
         [self commitString:string];
     _session->clear();
 }
@@ -189,67 +191,63 @@ Here are the three approaches:
 
 -(void)commitComposition:(id)sender 
 {
-    // FIXME: chrome's address bar issues this callback when showing suggestions. 
+    // FIXME: chrome's address bar issues this callback when showing suggestions.
     if ([[sender bundleIdentifier] isEqualToString:@"com.google.Chrome"])
         return;
 
     NSString *string = [_preeditString stringByReplacingOccurrencesOfString:@" " withString:@""];
-    if (string && [string length])
+    if (string.length)
         [self commitString:string];
     _session->clear();
 }
 
 -(NSMenu*)menu
 {
-    return [[NSApp delegate] menu];
+    return [SunPinyinApplicationDelegate fromApp].menu;
 }
 
 -(void)showPrefPanel:(id)sender
 {
-    [[NSApp delegate] showPrefPanel:sender];
+    [[SunPinyinApplicationDelegate fromApp] showPrefPanel:sender];
 }
 
 -(void)toggleChinesePuncts:(id)sender
 {
-    [[NSApp delegate] toggleChinesePuncts:sender];
+    [[SunPinyinApplicationDelegate fromApp] toggleChinesePuncts:sender];
     _session->setStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLPUNC,
-                                 [[NSApp delegate] inputChinesePuncts]);      
+                                 [SunPinyinApplicationDelegate fromApp].inputChinesePuncts);
 }
 
 -(void)toggleFullSymbols:(id)sender
 {
-    [[NSApp delegate] toggleFullSymbols:sender];
+    [[SunPinyinApplicationDelegate fromApp] toggleFullSymbols:sender];
     _session->setStatusAttrValue(CIMIWinHandler::STATUS_ID_FULLSYMBOL,
-                                 [[NSApp delegate] inputFullSymbols]);    
+                                 [SunPinyinApplicationDelegate fromApp].inputFullSymbols);
 }
 
 -(void)dealloc 
 {
     [self destroySession];
-    [super dealloc];
 }
 
 -(void)commitString:(NSString*)string
 {
     // fixed that IME does not work with M$ powerpoint 2008
     _caret = [string length];
-    [self showPreeditString:[string retain]];
+    [self showPreeditString:string];
 
     [_currentClient insertText:string 
                     replacementRange:NSMakeRange(NSNotFound, NSNotFound)];
-
-    [_preeditString release];
     _preeditString = nil;
 
-    [[[NSApp delegate] candiWin] hideCandidates];
+    [[SunPinyinApplicationDelegate fromApp].candiWin hideCandidates];
 }
 
 // firefox would call 'commitComposition:' when preedit is emptied
 -(void)showPreeditString:(NSString*)string
 {
     // cache the preedit string
-    [_preeditString release];
-    _preeditString = [string retain];
+    _preeditString = string;
 
     NSDictionary*       attrs;
     NSAttributedString* attrString;
@@ -261,8 +259,6 @@ Here are the three approaches:
     [_currentClient setMarkedText:attrString
                     selectionRange:NSMakeRange(_caret, 0) 
                     replacementRange:NSMakeRange(NSNotFound, NSNotFound)];
-
-    [attrString release];
 }
 
 -(void)setCaret:(int)caret andCandiStart:(int)start
@@ -276,18 +272,18 @@ Here are the three approaches:
     NSRect cursorRect;
     int curIdx = _candiStart;
     [_currentClient attributesForCharacterIndex:curIdx lineHeightRectangle:&cursorRect];
-    [[[NSApp delegate] candiWin] showCandidates:candidates around:cursorRect];
+    [[SunPinyinApplicationDelegate fromApp].candiWin showCandidates:candidates around:cursorRect];
 }
 
 -(void)updateStatus:(int)key withValue:(int)value
 {
     switch (key) {
     case CIMIWinHandler::STATUS_ID_FULLPUNC:
-        if (value != [[NSApp delegate] inputChinesePuncts])
+        if (value != [SunPinyinApplicationDelegate fromApp].inputChinesePuncts)
             [self toggleChinesePuncts:nil];
         break;
     case CIMIWinHandler::STATUS_ID_FULLSYMBOL:
-        if (value != [[NSApp delegate] inputFullSymbols])
+        if (value != [SunPinyinApplicationDelegate fromApp].inputFullSymbols)
             [self toggleFullSymbols:nil];
         break;
     default:
@@ -296,9 +292,10 @@ Here are the three approaches:
 }
 
 -(void)windowHandlerTimerCallback:(NSTimer*)timer
-{
-    if (timer)
+{    
+    if (timer) {
         _session->windowHandlerTimerCallback();
+    }
 }
 
 @end // SunPinyinController 
@@ -318,3 +315,5 @@ Here are the three approaches:
     _session = nil;
 }
 @end // SunPinyinController(Private)
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4

@@ -1,0 +1,14 @@
+language: cpp
+dist: focal
+addons:
+  apt:
+    packages:
+      - scons
+      - python3
+script: scons
+branches:
+  only:
+    - master
+compiler:
+  - clang
+  - gcc

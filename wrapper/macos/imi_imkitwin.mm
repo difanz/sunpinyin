@@ -62,7 +62,6 @@ void CIMKitWindowHandler::commit(const TWCHAR* wstr)
     size_t len = WCSLEN(wstr) * sizeof(TWCHAR);
     NSString *string = [[NSString alloc] initWithBytes:wstr length:len encoding:UTF32Encoding];
     [_ic commitString:string];
-    [string release];
 }
 
 void CIMKitWindowHandler::updatePreedit(const IPreeditString* ppd)
@@ -72,7 +71,6 @@ void CIMKitWindowHandler::updatePreedit(const IPreeditString* ppd)
     NSString *string = [[NSString alloc] initWithBytes:wstr length:len encoding:UTF32Encoding];
     [_ic setCaret:ppd->caret() andCandiStart:ppd->candi_start()];
     [_ic showPreeditString:string];
-    [string release];
 }
 
 void CIMKitWindowHandler::updateCandidates(const ICandidateList* pcl)
@@ -82,7 +80,7 @@ void CIMKitWindowHandler::updateCandidates(const ICandidateList* pcl)
     for (int i=0; i<pcl->size(); ++i) {
         const TWCHAR *wstr = pcl->candiString(i);
         size_t len = pcl->candiSize(i) * sizeof(TWCHAR);
-        NSString *string = [[[NSString alloc] initWithBytes:wstr length:len encoding:UTF32Encoding] autorelease];
+        NSString *string = [[NSString alloc] initWithBytes:wstr length:len encoding:UTF32Encoding];
         [candidates addObject:string];
     }
 
@@ -96,7 +94,7 @@ void CIMKitWindowHandler::updateStatus(int key, int value)
 
 void CIMKitWindowHandler::enableDeferedUpdate(CIMIView* view, int waitTime) 
 {
-    if (_timer == 0 && waitTime > 0) {
+    if ((_timer == 0 || ![_timer isValid]) && waitTime > 0) {
         _timer = [NSTimer scheduledTimerWithTimeInterval:waitTime 
                           target:_ic 
                           selector:@selector(windowHandlerTimerCallback) 
@@ -117,3 +115,5 @@ void CIMKitWindowHandler::doneDeferedUpdate()
 {
     _timer = 0;
 }
+
+// -*- indent-tabs-mode: nil -*- vim:et:ts=4
